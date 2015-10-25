@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MyGallery</string>
+
+    <string name="title_activity_fullscreen_image_acitivity">FullscreenImageAcitivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="content">content</string>
+</resources>
