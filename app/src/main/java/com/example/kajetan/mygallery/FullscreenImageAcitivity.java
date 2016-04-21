@@ -1,5 +1,6 @@
 package com.example.kajetan.mygallery;
 
+import android.media.Image;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,6 +13,8 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+
 import java.lang.Math;
 
 import com.bumptech.glide.Glide;
@@ -46,7 +49,6 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
         absoluteFilePathName = getIntent().getExtras().getString("absoluteFilePathName");
         onCreateRenderImage();
         onCreateZoomInOut();
-
     }
 
 
@@ -65,8 +67,9 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
         firstHistoryFingerPosition = new MotionEvent.PointerCoords();
         secondHistoryFingerPosition = new MotionEvent.PointerCoords();
 
-
-        imageFullScreen.setOnTouchListener(new OnTouchListener() {
+        RelativeLayout rl = (RelativeLayout)findViewById(R.id.rlFullScreen);
+        //ImageView rl = (ImageView) findViewById(R.id.imageViewFullscreen);
+        rl.setOnTouchListener(new OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             movingImage = new GestureDetector(v.getContext(), my);
@@ -87,8 +90,10 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
             {
                 m.getPointerCoords(0, firstHistoryFingerPosition);
                 m.getPointerCoords(1, secondHistoryFingerPosition);
-                vecHistoryLength = (float)(Math.hypot(firstHistoryFingerPosition.x, firstHistoryFingerPosition.y)
-                        - Math.hypot(secondHistoryFingerPosition.x, secondHistoryFingerPosition.y));
+                vecHistoryLength = (float)(Math.hypot(
+                    secondHistoryFingerPosition.x - firstHistoryFingerPosition.x,
+                    secondHistoryFingerPosition.y - firstHistoryFingerPosition.y
+                ));
 
                 saveValuesDoubleFinger = false;
             }
@@ -107,11 +112,13 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
             m.getPointerCoords(1, secondFingerPosition);
 
             if (action == m.ACTION_MOVE){
+                lengthVec = (float)(Math.hypot(
+                        secondFingerPosition.x - firstFingerPosition.x,
+                        secondFingerPosition.y - firstFingerPosition.y
+                ));
 
-                lengthVec = (float)(Math.hypot(firstFingerPosition.x, firstFingerPosition.y)
-                    - Math.hypot(secondFingerPosition.x, secondFingerPosition.y));
+                tempLengthVec = lengthVec - vecHistoryLength;
 
-                tempLengthVec = vecHistoryLength - lengthVec;
                 vecHistoryLength = lengthVec;
 
                 imageFullScreen.setScaleX(
@@ -201,14 +208,16 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            RelativeLayout rl = (RelativeLayout)findViewById(R.id.rlFullScreen);
             if (!saveValues) {
                 saveValues = true;
                 movementX = distanceX;
                 movementY = distanceY;
             } else {
-                imageFullScreen.setX(imageFullScreen.getX() + (movementX - distanceX));
-                imageFullScreen.setY(imageFullScreen.getY() + (movementY - distanceY));
+                imageFullScreen.setX(rl.getX() + (movementX - distanceX));
+                imageFullScreen.setY(rl.getY() + (movementY - distanceY));
             }
+
             return true;
         }
 

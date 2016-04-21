@@ -43,8 +43,6 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
         showImage = anim;
         inflater = LayoutInflater.from(context);
 
-
-
         if (data != null)
             this.data = data;
 
@@ -124,27 +122,28 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
                     );
 
 
-
-                    intent =  intent.putExtra(
+                    intent = intent.putExtra(
                             "absoluteFilePathName",
                             absoluteImagePathName.getText().toString()
                     );
 
+                    try {
+                        Scene mScene = null;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            mScene = Scene.getSceneForLayout(
+                                    (ViewGroup) cardView.getParent(), R.layout.activity_fullscreen_image_acitivity, myContext
+                            );
+                        }
 
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            TransitionManager.go(mScene, transition);
+                        }
 
-//                    try{
-//                        Scene mScene = Scene.getSceneForLayout(
-//                                (ViewGroup)cardView.getParent(), R.layout.activity_fullscreen_image_acitivity, myContext
-//                        );
-//
-//                        Activity act = (Activity) myContext;
-//                        TransitionManager.go(mScene, transition);
-//
-//                    } catch (Exception e) {
-//                        Toast.makeText(myContext, e.toString(), Toast.LENGTH_SHORT);
-//                    } finally {
-//                    }
+                    } catch (Exception e) {
+                        Toast.makeText(myContext, e.toString(), Toast.LENGTH_SHORT);
+                    } finally {
                         cardView.getContext().startActivity(intent);
+                    }
                 }
             });
         }
@@ -159,7 +158,6 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
             });
 
         }
-
     }
 
 

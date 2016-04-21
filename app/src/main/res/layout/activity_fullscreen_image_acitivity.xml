@@ -1,13 +1,12 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rlFullScreen"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-
     tools:context="com.example.kajetan.mygallery.FullscreenImageAcitivity">
-
     <ImageView
         android:id="@+id/imageViewFullscreen"
         android:layout_width="363dp"
