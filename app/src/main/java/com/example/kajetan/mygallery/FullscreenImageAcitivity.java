@@ -1,43 +1,38 @@
 package com.example.kajetan.mygallery;
 
-import android.annotation.SuppressLint;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.gesture.GestureOverlayView;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
-import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.Toast;
+import java.lang.Math;
 
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.assist.ImageSize;
+import com.bumptech.glide.Glide;
 
 public class FullscreenImageAcitivity extends AppCompatActivity {
-    ImageView imageFullScreen;
-    ImageView zoomIn, zoomOut;
-    GestureDetector movingImage;
-    String absoluteFilePathName;
+    private ImageView imageFullScreen;
+    private ImageView zoomIn, zoomOut;
+    private GestureDetector movingImage;
+    private String absoluteFilePathName;
+    private Animation showFullScreen;
+    private boolean saveValuesDoubleFinger = true;
+
+    private MotionEvent.PointerCoords firstHistoryFingerPosition, secondHistoryFingerPosition;
+    private float vecHistoryLength;
+    private float tempLengthVec;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        showFullScreen = AnimationUtils.loadAnimation(this, R.anim.showfullscreen);
 
-        //turning on fullscreen and hiding actionbar
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().hide();
@@ -51,7 +46,7 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
         absoluteFilePathName = getIntent().getExtras().getString("absoluteFilePathName");
         onCreateRenderImage();
         onCreateZoomInOut();
-        onCreateMoveListener();
+
     }
 
 
@@ -65,26 +60,97 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
             };
         });
     }
-
+    ///double finger listener
     private void onCreateZoomInOut() {
-        zoomIn = (ImageView)findViewById(R.id.buttonZoomIn);
-        zoomOut = (ImageView)findViewById(R.id.buttonZoomOut);
+        firstHistoryFingerPosition = new MotionEvent.PointerCoords();
+        secondHistoryFingerPosition = new MotionEvent.PointerCoords();
 
 
-        zoomIn.setOnClickListener(onClickZoomInListener);
-        zoomOut.setOnClickListener(onClickZoomOutListener);
+        imageFullScreen.setOnTouchListener(new OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            movingImage = new GestureDetector(v.getContext(), my);
+            movingImage.onTouchEvent(event);
+            doubleFingerListener(event);
+            return true;
+        }
 
+    });
+
+    }
+    private void doubleFingerListener(MotionEvent m) {
+        int pointerCount = m.getPointerCount();
+        if (pointerCount == 1)
+            saveValuesDoubleFinger = true;
+        if (pointerCount == 2) {
+            if (saveValuesDoubleFinger)
+            {
+                m.getPointerCoords(0, firstHistoryFingerPosition);
+                m.getPointerCoords(1, secondHistoryFingerPosition);
+                vecHistoryLength = (float)(Math.hypot(firstHistoryFingerPosition.x, firstHistoryFingerPosition.y)
+                        - Math.hypot(secondHistoryFingerPosition.x, secondHistoryFingerPosition.y));
+
+                saveValuesDoubleFinger = false;
+            }
+            MotionEvent.PointerCoords firstFingerPosition, secondFingerPosition, vecFingerFirst,
+                    vecFingerSecond;
+            float lengthVec;
+
+            firstFingerPosition = new MotionEvent.PointerCoords();
+            secondFingerPosition = new MotionEvent.PointerCoords();
+
+
+            int action = m.getActionMasked();
+            int actionIndex = m.getActionIndex();
+
+            m.getPointerCoords(0, firstFingerPosition);
+            m.getPointerCoords(1, secondFingerPosition);
+
+            if (action == m.ACTION_MOVE){
+
+                lengthVec = (float)(Math.hypot(firstFingerPosition.x, firstFingerPosition.y)
+                    - Math.hypot(secondFingerPosition.x, secondFingerPosition.y));
+
+                tempLengthVec = vecHistoryLength - lengthVec;
+                vecHistoryLength = lengthVec;
+
+                imageFullScreen.setScaleX(
+                        (tempLengthVec/100.f)+ imageFullScreen.getScaleX());
+                imageFullScreen.setScaleY(
+                        (tempLengthVec/100.f) + imageFullScreen.getScaleY());
+
+                if(imageFullScreen.getScaleX() > 10) {
+                    imageFullScreen.setScaleX(10);
+                    imageFullScreen.setScaleY(10);
+                }
+
+                if(imageFullScreen.getScaleX() < 1) {
+                    imageFullScreen.setScaleX(1);
+                    imageFullScreen.setScaleY(1);
+                }
+
+
+            }
+        }
     }
 
     private void onCreateRenderImage() {
         imageFullScreen = (ImageView)findViewById(R.id.imageViewFullscreen);
 
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Glide.with(getApplicationContext()).load(
+                        "file:///" + absoluteFilePathName).into(imageFullScreen);
+                        //new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY).build()
+            }
+        });
+
         if (absoluteFilePathName != null)
-            ImageLoader.getInstance().displayImage(
-                    "file:///" + absoluteFilePathName,
-                    imageFullScreen,
-                    new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY).build()
-            );
+        {
+        }
+        thread.run();
+        imageFullScreen.startAnimation(showFullScreen);
     }
 
     private OnClickListener onClickZoomInListener = new OnClickListener(){
@@ -99,13 +165,6 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
                 imageFullScreen.setScaleY(10);
             }
 
-//            ImageLoader.getInstance().displayImage(
-//                    "file:///" + absoluteFilePathName,
-//                    imageFullScreen,
-//                    new DisplayImageOptions.Builder().imageScaleType(ImageScaleType.EXACTLY).build()
-//            );
-
-
         }
     };
     private OnClickListener onClickZoomOutListener = new OnClickListener(){
@@ -117,13 +176,6 @@ public class FullscreenImageAcitivity extends AppCompatActivity {
                 imageFullScreen.setScaleX(1);
                 imageFullScreen.setScaleY(1);
             }
-//            imageFullScreen.setImageBitmap(ImageLoader.getInstance().loadImageSync(
-//                    "file:///" + absoluteFilePathName,
-//                    new ImageSize(
-//                            (int) (imageFullScreen.getWidth() * imageFullScreen.getScaleX()),
-//                            (int) (imageFullScreen.getHeight() * imageFullScreen.getScaleY()))
-//            ));
-
         }
     };
     //listening to moving image in fullscreen mode

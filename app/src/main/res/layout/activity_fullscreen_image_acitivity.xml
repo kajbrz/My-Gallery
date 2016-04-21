@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cardview_light_background"
+    android:background="#000000"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 
@@ -12,34 +12,16 @@
         android:id="@+id/imageViewFullscreen"
         android:layout_width="363dp"
         android:layout_height="362dp"
-        android:src="@mipmap/default_image_record"
         android:layout_gravity="center"
         android:contentDescription="@string/content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true" />
+        android:layout_margin="5dp"
+        android:background="#000000" />
 
 
-    <ImageView
-        android:id="@+id/buttonZoomIn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|top"
-        android:src="@mipmap/plus"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <ImageView
-        android:id="@+id/buttonZoomOut"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|bottom"
-        android:src="@mipmap/minus"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
 </RelativeLayout>

@@ -1,39 +1,31 @@
 package com.example.kajetan.mygallery;
 
-import android.content.ContentResolver;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.Image;
-import android.media.ThumbnailUtils;
-import android.provider.MediaStore;
-import android.support.v7.internal.view.menu.MenuView;
+import android.graphics.Color;
+import android.os.Build;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.Display;
+import android.transition.Scene;
+import android.transition.Transition;
+import android.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.view.animation.Animation;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.provider.MediaStore.Images.Thumbnails;
 import android.widget.Toast;
 
-import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
+import com.bumptech.glide.Glide;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import javax.xml.datatype.Duration;
 
 /**
  * Created by Kajetan on 2015-10-18.
@@ -42,14 +34,21 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
     private LayoutInflater inflater;
     private List<RecordOfView> data = Collections.emptyList();
 
-    private int xySizeOfThumbnail;
+    private Animation showImage;
+    private Transition transition;
 
-    public ListImageAdapter(Context context, List<RecordOfView> data) {
+    private int xySizeOfThumbnail;
+    private Context myContext;
+    public ListImageAdapter(Context context, List<RecordOfView> data, Animation anim, Transition transition) {
+        showImage = anim;
         inflater = LayoutInflater.from(context);
+
+
 
         if (data != null)
             this.data = data;
 
+        myContext = context;
         setTheThumbnailSize();
     }
     private void setTheThumbnailSize()
@@ -59,11 +58,12 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
         xySizeOfThumbnail = tempSize;
     }
 
+
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = inflater.inflate(R.layout.custom_row, parent, false);
 
-        MyViewHolder myViewHolder = new MyViewHolder(view);
+        MyViewHolder myViewHolder = new MyViewHolder(view, myContext);
 
 
         return myViewHolder;
@@ -71,11 +71,15 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         RecordOfView rec = data.get(position);
-
         holder.imageName.setText(rec.sourceNameFile);
+
         holder.absoluteImagePathName.setText(rec.sourcePathName);
-        holder.image.getLayoutParams().height = xySizeOfThumbnail;
-        ImageLoader.getInstance().displayImage("file:///" + rec.sourcePathName, holder.image);
+        holder.image.setAlpha(1.f);
+        Glide.with(myContext).load("file:///" + rec.sourcePathName)
+                .asBitmap().centerCrop()
+                .into(holder.image);
+        holder.image.setBackgroundColor(Color.BLACK);
+        holder.image.startAnimation(showImage);
     }
 
 
@@ -89,19 +93,24 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
         TextView imageName;
         TextView absoluteImagePathName;
         ImageView image;
-
-        public MyViewHolder(View itemView) {
+        Context myContext;
+        public MyViewHolder(View itemView, Context context  ) {
             super(itemView);
             imageName = (TextView) itemView.findViewById(R.id.textView);
             absoluteImagePathName = (TextView) itemView.findViewById(R.id.absoluteFilePathName);
             image = (ImageView)itemView.findViewById(R.id.imageView);
             cardView = (CardView)itemView.findViewById(R.id.cv);
-
+            cardView.setCardBackgroundColor(Color.BLACK);
+            myContext = context;
             onClickImageEvent();
+            onLongClickImageEvent();
         }
         //listening to open new activity with clicked image
+
+
         private void onClickImageEvent() {
             cardView.setOnClickListener(new View.OnClickListener() {
+                //@TargetApi(Build.VERSION_CODES.KITKAT)
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(
@@ -113,15 +122,44 @@ public class ListImageAdapter extends RecyclerView.Adapter<ListImageAdapter.MyVi
                             cardView.getContext(),
                             FullscreenImageAcitivity.class
                     );
-                    cardView.getContext().startActivity(
-                            intent.putExtra(
-                                    "absoluteFilePathName",
-                                    absoluteImagePathName.getText().toString()
-                            )
+
+
+
+                    intent =  intent.putExtra(
+                            "absoluteFilePathName",
+                            absoluteImagePathName.getText().toString()
                     );
+
+
+
+//                    try{
+//                        Scene mScene = Scene.getSceneForLayout(
+//                                (ViewGroup)cardView.getParent(), R.layout.activity_fullscreen_image_acitivity, myContext
+//                        );
+//
+//                        Activity act = (Activity) myContext;
+//                        TransitionManager.go(mScene, transition);
+//
+//                    } catch (Exception e) {
+//                        Toast.makeText(myContext, e.toString(), Toast.LENGTH_SHORT);
+//                    } finally {
+//                    }
+                        cardView.getContext().startActivity(intent);
                 }
             });
         }
+
+        private void onLongClickImageEvent()
+        {
+            cardView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    return true;
+                }
+            });
+
+        }
+
     }
 
 

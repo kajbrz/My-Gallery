@@ -8,7 +8,7 @@
     <android.support.v7.widget.CardView
         android:id="@+id/cv"
         android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
+        android:layout_width="@android:dimen/thumbnail_width"
         android:layout_height="@android:dimen/thumbnail_height"
         android:layout_weight="0.49"
         android:background="#ffffff" >
